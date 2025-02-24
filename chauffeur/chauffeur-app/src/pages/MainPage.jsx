@@ -44,7 +44,7 @@ const MapComponent = () => {
       {lat:3.0591, lng:36.7764},  // Tafourah - Grande Poste
       {lat:3.1136, lng:36.7132}  // El Harrach Bus Station
     ],
-    "demand": 30
+    "demand": 50
   }
   const fromTafourahBabEzzouar = {
     "coordinates": [
@@ -70,7 +70,15 @@ const MapComponent = () => {
   useEffect(() => {
     const initializeRoute = async () => {
       if (start && end) {
-        await getRoute(start, end);
+        if(fromTafourahHarrach.demand > fromTafourahBabEzzouar.demand)
+        {
+          await getRoute(fromTafourahHarrach.coordinates[0], fromTafourahHarrach.coordinates[1])
+        }
+        else
+        {
+          await getRoute(fromTafourahBabEzzouar.coordinates[0], fromTafourahBabEzzouar.coordinates[1])
+
+        }
       }
     };
     initializeRoute();
