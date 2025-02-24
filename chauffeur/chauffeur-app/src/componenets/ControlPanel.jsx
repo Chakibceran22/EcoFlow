@@ -10,7 +10,7 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                 <div className="flex flex-col gap-3">
                     <div className="flex flex-row gap-3">
                         <button
-                            onClick={() => console.log('clicked')}
+                            onClick={() => navigate('/')}
                             disabled={isSelecting}
                             className={`flex-1 flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${isSelecting && selectingPoint === 'start'
                                     ? 'bg-[#4CAF50] text-white'
