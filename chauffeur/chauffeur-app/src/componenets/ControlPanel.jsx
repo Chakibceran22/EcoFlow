@@ -11,7 +11,7 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                         <button
                             onClick={() => startSelecting('start')}
                             disabled={isSelecting}
-                            className={`flex-1 flex items-center justify-center gap-2 p-3 text-sm rounded-lg transition-all ${isSelecting && selectingPoint === 'start'
+                            className={`flex-1 flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${isSelecting && selectingPoint === 'start'
                                     ? 'bg-[#4CAF50] text-white'
                                     : 'bg-white border border-[#4CAF50] text-[#4CAF50] hover:bg-[#EAFAEB]'
                                 }`}
@@ -23,7 +23,7 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                         <button
                             onClick={() => startSelecting('end')}
                             disabled={isSelecting || !start}
-                            className={`flex-1 flex items-center justify-center gap-2 p-3 text-sm rounded-lg transition-all ${isSelecting && selectingPoint === 'end'
+                            className={`flex-1 flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${isSelecting && selectingPoint === 'end'
                                     ? 'bg-[#4CAF50] text-white'
                                     : start
                                         ? 'bg-white border border-[#4CAF50] text-[#4CAF50] hover:bg-[#EAFAEB]'
@@ -36,7 +36,7 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
 
                         <button
                             onClick={resetPoints}
-                            className="flex items-center justify-center gap-2 p-3 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200"
+                            className="flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200"
                         >
                             <RotateCcw size={20} />
                             Reset
@@ -44,7 +44,7 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                     </div>
 
                     {isSelecting && (
-                        <div className="p-3 bg-[#EAFAEB] text-[#4CAF50] text-sm rounded-lg flex items-center gap-2">
+                        <div className="p-2 bg-[#EAFAEB] text-[#4CAF50] text-[10px] rounded-lg flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
                             Click on the map to select {selectingPoint} point
                         </div>
