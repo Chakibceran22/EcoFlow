@@ -34,6 +34,8 @@ const MapComponent = () => {
     }
   }, []);
 
+  
+
   const getRoute = async (startPoint, endPoint) => {
     try {
       setLoading(true);
@@ -53,7 +55,7 @@ const MapComponent = () => {
       };
 
       const response = await fetch(
-        'https://api.openrouteservice.org/v2/directions/driving-car/geojson',
+        'http://localhost:3000/api/directions',
         {
           method: 'POST',
           headers: headers,
@@ -66,9 +68,13 @@ const MapComponent = () => {
         throw new Error(errorData.error.message || 'Failed to fetch route');
       }
 
-      const data = await response.json();
+      let data = await response.json();
+      data = data.route;
+     
       
       if (!data.features || !data.features[0]) {
+        console.log(data.features)
+        console.log(data.features[0])
         throw new Error('No route found between these points');
       }
 
@@ -87,6 +93,14 @@ const MapComponent = () => {
   };
 
   const handleLocationSelect = async (latlng) => {
+    const { lat, lng } = latlng;
+    const isInAlgeria = lat >= 19 && lat <= 37 && lng >= -9 && lng <= 12;
+  
+    if (!isInAlgeria) {
+      setError("Selected location is outside Algeria.");
+      return;
+    }
+  
     if (selectingPoint === 'start') {
       setStart(latlng);
       setSelectingPoint('end');
@@ -155,13 +169,13 @@ const MapComponent = () => {
 
       {/* Control Panel */}
       <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4" style={{ zIndex: 1000 }}>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-row gap-3">
           <button 
             onClick={() => startSelecting('start')}
             disabled={isSelecting}
-            className={`flex items-center justify-center gap-2 p-3 rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${
               isSelecting && selectingPoint === 'start'
-                ? 'bg-blue-100 text-blue-600'
+                ? 'bg-[#EAFAEB] text-[#4CAF50]'
                 : 'bg-white border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -172,9 +186,9 @@ const MapComponent = () => {
           <button 
             onClick={() => startSelecting('end')}
             disabled={isSelecting || !start}
-            className={`flex items-center justify-center gap-2 p-3 rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${
               isSelecting && selectingPoint === 'end'
-                ? 'bg-blue-100 text-blue-600'
+                ? 'bg-[#EAFAEB] text-[#4CAF50]'
                 : start
                 ? 'bg-white border border-gray-200 hover:bg-gray-50'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -186,7 +200,7 @@ const MapComponent = () => {
 
           <button 
             onClick={resetPoints}
-            className="flex items-center justify-center gap-2 p-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all"
+            className="flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all"
           >
             <RotateCcw size={20} />
             Reset
@@ -194,13 +208,13 @@ const MapComponent = () => {
         </div>
 
         {error && (
-          <div className="mt-3 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          <div className="mt-3 p-2 bg-red-50 text-red-600 text-[10px] rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {isSelecting && (
-          <div className="mt-3 p-3 bg-blue-50 text-blue-600 rounded-lg text-sm">
+          <div className="mt-3 p-2 bg-[#EAFAEB] text-[#4CAF50] text-[10px] rounded-lg text-sm">
             Tap the map to select a {selectingPoint} point
           </div>
         )}
