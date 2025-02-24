@@ -1,19 +1,20 @@
 import { MapContainer, TileLayer, Popup, Marker, Polyline } from "react-leaflet";
 import MapClickHandler from "./MapClickerHandler";
+import gpsIcon from '../assets/gps.svg';
 import L from 'leaflet';
 
 // First, make sure marker icon images are available
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  iconUrl: gpsIcon,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
 const customMarker = new L.Icon({
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  iconUrl: gpsIcon,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  iconSize: [25, 41],
+  iconSize: [25, 35],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
@@ -46,22 +47,22 @@ const MapContainerCustom = ({handleLocationSelect, isSelecting, start, end, mark
           onLocationSelect={handleLocationSelect}
           isSelecting={isSelecting}
         />
-        {/* {start && (
-          // <Marker 
-          //   position={[3.0591, 36.7764]}
-          //   icon={customMarker}
-          // >
-          //   <Popup>Tafourah - Grande Poste</Popup>
-          // </Marker>
+        {start && (
+          <Marker 
+            position={[36.776373, 3.059107 ]}
+            icon={customMarker}
+          >
+            <Popup>Tafourah - Grande Poste</Popup>
+          </Marker>
         )}
         {end && (
-          // <Marker 
-          //   position={[3.0591, 36.7764]}
-          //   icon={customMarker}
-          // >
-          //   <Popup>El Harrach Bus Station</Popup>
-          // </Marker>
-        )} */}
+          <Marker 
+            position={[36.713231,3.11362]}
+            icon={customMarker}
+          >
+            <Popup>El Harrach Bus Station</Popup>
+          </Marker>
+        )}
         {routeCoordinates.length > 0 && (
           <Polyline 
             positions={routeCoordinates}
