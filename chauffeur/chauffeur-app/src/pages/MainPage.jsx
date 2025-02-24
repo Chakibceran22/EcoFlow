@@ -8,10 +8,8 @@ import MapContainerCustom from "../componenets/MapContainer.jsx";
 import Error from "../componenets/Error.jsx";
 import ControlPanel from "../componenets/ControlPanel.jsx";
 
-// Fix Leaflet marker icon paths
 L.Icon.Default.imagePath = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/";
 
-// Create custom marker icon
 const customIcon = new L.Icon({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
