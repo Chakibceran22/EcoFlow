@@ -1,7 +1,8 @@
-import { MapPin, Navigation, RotateCcw } from "lucide-react"
-
+import { MapPin, Navigation, RotateCcw, User, Map } from "lucide-react"
+import {useNavigate} from 'react-router-dom'
 
 const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, resetPoints }) => {
+    const navigate = useNavigate()
     return (
         <>
             {/* Control Panel */}
@@ -9,19 +10,19 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                 <div className="flex flex-col gap-3">
                     <div className="flex flex-row gap-3">
                         <button
-                            onClick={() => startSelecting('start')}
+                            onClick={() => console.log('clicked')}
                             disabled={isSelecting}
                             className={`flex-1 flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${isSelecting && selectingPoint === 'start'
                                     ? 'bg-[#4CAF50] text-white'
                                     : 'bg-white border border-[#4CAF50] text-[#4CAF50] hover:bg-[#EAFAEB]'
                                 }`}
                         >
-                            <MapPin size={20} />
-                            {start ? 'Change Start' : 'Select Start'}
+                            <Map size={20} />
+                            Routes
                         </button>
 
                         <button
-                            onClick={() => startSelecting('end')}
+                            onClick={() => navigate('/profile')}
                             disabled={isSelecting || !start}
                             className={`flex-1 flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${isSelecting && selectingPoint === 'end'
                                     ? 'bg-[#4CAF50] text-white'
@@ -30,17 +31,11 @@ const ControlPanel = ({startSelecting, start, isSelecting, selectingPoint,end, r
                                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                 }`}
                         >
-                            <Navigation size={20} />
-                            {end ? 'Change End' : 'Select End'}
+                            <User size={20} />
+                            Profile
                         </button>
 
-                        <button
-                            onClick={resetPoints}
-                            className="flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all border border-red-200"
-                        >
-                            <RotateCcw size={20} />
-                            Reset
-                        </button>
+                        
                     </div>
 
                     {isSelecting && (

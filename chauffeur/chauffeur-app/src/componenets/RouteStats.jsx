@@ -5,7 +5,7 @@ const RouteStats = ({ routeStats }) => {
   if (!routeStats) return null; 
 
   return (
-    <div className="absolute top-20 left-4 bg-white rounded-lg shadow-md p-2 z-[1001] w-64">
+    <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-2 z-[1001] w-64">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between border-b border-gray-100 pb-2">
           <span className="text-sm font-medium text-[#4CAF50]">Route Details</span>
