@@ -1,16 +1,29 @@
-const RouteStats = ({ distance, duration }) => (
-    <div className="absolute top-4 left-4 right-4 bg-white rounded-lg p-4 shadow-lg z-[1000]">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm text-gray-500">Distance</p>
-          <p className="text-lg font-semibold">{distance} km</p>
+import { Route } from "lucide-react";
+
+
+const RouteStats = ({ routeStats }) => {
+  if (!routeStats) return null; 
+
+  return (
+    <div className="absolute top-20 left-4 bg-white rounded-lg shadow-md p-4 z-[1001] w-64">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+          <span className="text-sm font-medium text-[#4CAF50]">Route Details</span>
+          <Route className="h-4 w-4 text-[#4CAF50]" />
         </div>
-        <div>
-          <p className="text-sm text-gray-500">Duration</p>
-          <p className="text-lg font-semibold">{duration} min</p>
+        <div className="grid grid-cols-1 gap-2">
+          <div className="bg-[#EAFAEB] p-3 rounded-lg">
+            <div className="text-xs text-[#4CAF50] font-medium">Total Distance</div>
+            <div className="text-lg font-semibold text-gray-700">{routeStats.distance} km</div>
+          </div>
+          <div className="bg-[#EAFAEB] p-3 rounded-lg">
+            <div className="text-xs text-[#4CAF50] font-medium">Estimated Time</div>
+            <div className="text-lg font-semibold text-gray-700">{routeStats.duration} min</div>
+          </div>
         </div>
       </div>
     </div>
   );
-  
-  export default RouteStats;
+};
+
+export default RouteStats;

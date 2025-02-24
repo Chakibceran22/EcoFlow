@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
+import React, { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
-import RouteStats from '../componenets/RouteStats.jsx';
+import RouteStats from "../componenets/RouteStats.jsx";
 import L from "leaflet";
-import { MapPin, Navigation, RotateCcw } from 'lucide-react';
-import MapClickHandler from '../componenets/MapClickerHandler.jsx';
-import LoadingOverlay from '../componenets/LoadingOverlay.jsx'
+import { MapPin, Navigation, RotateCcw } from "lucide-react";
+import LoadingOverlay from "../componenets/LoadingOverlay.jsx";
+import Header from "../componenets/Header.jsx";
+import MapContainerCustom from "../componenets/MapContainer.jsx";
+import Error from "../componenets/Error.jsx";
+import ControlPanel from "../componenets/ControlPanel.jsx";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
 });
 
 const ORS_API_KEY = import.meta.env.VITE_OPS_API_KEY;
@@ -20,21 +25,28 @@ const MapComponent = () => {
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [selectingPoint, setSelectingPoint] = useState('start');
+  const [selectingPoint, setSelectingPoint] = useState("start");
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [routeStats, setRouteStats] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const markerRef = React.useRef(null);
+
   useEffect(() => {
     const marker = markerRef.current;
     if (marker) {
-      marker.on("mouseover", () => marker.openPopup()); // Open popup on hover
-      marker.on("mouseout", () => marker.closePopup()); // Close popup when mouse leaves
+      marker.on("mouseover", () => marker.openPopup());
+      marker.on("mouseout", () => marker.closePopup());
     }
-  }, []);
 
-  
+    // Update time every minute
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const getRoute = async (startPoint, endPoint) => {
     try {
@@ -42,51 +54,53 @@ const MapComponent = () => {
       setError(null);
 
       const headers = {
-        'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
-        'Authorization': ORS_API_KEY,
-        'Content-Type': 'application/json'
+        Accept:
+          "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+        Authorization: ORS_API_KEY,
+        "Content-Type": "application/json",
       };
 
       const body = {
         coordinates: [
           [startPoint.lng, startPoint.lat],
-          [endPoint.lng, endPoint.lat]
-        ]
+          [endPoint.lng, endPoint.lat],
+        ],
       };
 
-      const response = await fetch(
-        'http://localhost:3000/api/directions',
-        {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify(body)
-        }
-      );
+      const response = await fetch("http://localhost:3000/api/directions", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(body),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error.message || 'Failed to fetch route');
+        throw new Error(errorData.error.message || "Failed to fetch route");
       }
 
       let data = await response.json();
       data = data.route;
-     
-      
+
       if (!data.features || !data.features[0]) {
-        console.log(data.features)
-        console.log(data.features[0])
-        throw new Error('No route found between these points');
+        throw new Error("No route found between these points");
       }
 
-      const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-      const distance = (data.features[0].properties.segments[0].distance / 1000).toFixed(1);
-      const duration = Math.round(data.features[0].properties.segments[0].duration / 60);
-      
+      const coordinates = data.features[0].geometry.coordinates.map((coord) => [
+        coord[1],
+        coord[0],
+      ]);
+      const distance = (
+        data.features[0].properties.segments[0].distance / 1000
+      ).toFixed(1);
+      const duration = Math.round(
+        data.features[0].properties.segments[0].duration / 60
+      );
+
       setRouteCoordinates(coordinates);
       setRouteStats({ distance, duration });
     } catch (err) {
-      console.error('Error fetching route:', err);
-      setError(err.message || 'Failed to fetch route. Please try again.');
+      console.error("Error fetching route:", err);
+      setError(err.message || "Failed to fetch route. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -95,15 +109,15 @@ const MapComponent = () => {
   const handleLocationSelect = async (latlng) => {
     const { lat, lng } = latlng;
     const isInAlgeria = lat >= 19 && lat <= 37 && lng >= -9 && lng <= 12;
-  
+
     if (!isInAlgeria) {
       setError("Selected location is outside Algeria.");
       return;
     }
-  
-    if (selectingPoint === 'start') {
+
+    if (selectingPoint === "start") {
       setStart(latlng);
-      setSelectingPoint('end');
+      setSelectingPoint("end");
     } else {
       setEnd(latlng);
       setIsSelecting(false);
@@ -114,7 +128,7 @@ const MapComponent = () => {
   const startSelecting = (pointType) => {
     setSelectingPoint(pointType);
     setIsSelecting(true);
-    if (pointType === 'start') {
+    if (pointType === "start") {
       setStart(null);
       setEnd(null);
       setRouteCoordinates([]);
@@ -130,100 +144,41 @@ const MapComponent = () => {
     setError(null);
     setRouteStats(null);
   };
+
   const customMarker = new L.Icon({
-    iconUrl: './src/assets/gps.svg', 
-    iconSize: [25, 30], // Default Leaflet size
-    iconAnchor: [12, 41], // Positioning anchor
-    popupAnchor: [1, -34]
+    iconUrl: "./src/assets/gps.svg",
+    iconSize: [25, 30],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
   });
+
   return (
-    <div className="relative h-screen w-full">
-      {/* Map Container */}
-      <div className="absolute inset-0">
-        <MapContainer 
-          center={[40, -3]} 
-          zoom={5} 
-          className="h-full w-full"
-          style={{ zIndex: 1 }}
-        >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-          <MapClickHandler 
-            onLocationSelect={handleLocationSelect}
-            isSelecting={isSelecting}
-          />
-          {start && <Marker position={start} icon={customMarker} ref={markerRef} ><Popup>Start</Popup></Marker>}
-          {end && <Marker position={end} icon={customMarker} ref={markerRef}><Popup>Destination</Popup></Marker>}
-          {routeCoordinates.length > 0 && (
-            <Polyline 
-              positions={routeCoordinates}
-              className="route-line"
-              color="#4CAF50"
-              weight={4}
-              opacity={0.8}
-            />
-          )}
-        </MapContainer>
-      </div>
-      {/* Route Stats */}
-      {routeStats && <RouteStats {...routeStats} />}
+    <div className="relative h-screen w-full bg-[#FAFAFA]">
+      <Header currentTime={currentTime} />
 
-      {/* Control Panel */}
-      <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4" style={{ zIndex: 1000 }}>
-        <div className="flex flex-row gap-3">
-          <button 
-            onClick={() => startSelecting('start')}
-            disabled={isSelecting}
-            className={`flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${
-              isSelecting && selectingPoint === 'start'
-                ? 'bg-[#EAFAEB] text-[#4CAF50]'
-                : 'bg-white border border-gray-200 hover:bg-gray-50'
-            }`}
-          >
-            <MapPin size={20} />
-            {start ? 'Change Start Point' : 'Select Start Point'}
-          </button>
-          
-          <button 
-            onClick={() => startSelecting('end')}
-            disabled={isSelecting || !start}
-            className={`flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg transition-all ${
-              isSelecting && selectingPoint === 'end'
-                ? 'bg-[#EAFAEB] text-[#4CAF50]'
-                : start
-                ? 'bg-white border border-gray-200 hover:bg-gray-50'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <Navigation size={20} />
-            {end ? 'Change End Point' : 'Select End Point'}
-          </button>
+      <MapContainerCustom
+        handleLocationSelect={handleLocationSelect}
+        isSelecting={isSelecting}
+        start={start}
+        end={end}
+        customMarker={customMarker}
+        markerRef={markerRef}
+        routeCoordinates={routeCoordinates}
+      />
 
-          <button 
-            onClick={resetPoints}
-            className="flex items-center justify-center gap-2 p-2 text-[10px] rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all"
-          >
-            <RotateCcw size={20} />
-            Reset
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-3 p-2 bg-red-50 text-red-600 text-[10px] rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {isSelecting && (
-          <div className="mt-3 p-2 bg-[#EAFAEB] text-[#4CAF50] text-[10px] rounded-lg text-sm">
-            Tap the map to select a {selectingPoint} point
-          </div>
-        )}
-      </div>
-
-      {/* Loading Overlay */}
+      <RouteStats routeStats={routeStats} />
+      <Error error={error} />
+      <ControlPanel
+        start={start}
+        setStart={setStart}
+        end={end}
+        setEnd={setEnd}
+        isSelecting={isSelecting}
+        selectingPoint={selectingPoint}
+        startSelecting={startSelecting}
+        resetPoints={resetPoints}
+      />
       {loading && <LoadingOverlay />}
-
-      
     </div>
   );
 };
