@@ -2,28 +2,60 @@ import React, { useState, useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 import RouteStats from "../componenets/RouteStats.jsx";
 import L from "leaflet";
-import { MapPin, Navigation, RotateCcw } from "lucide-react";
 import LoadingOverlay from "../componenets/LoadingOverlay.jsx";
 import Header from "../componenets/Header.jsx";
 import MapContainerCustom from "../componenets/MapContainer.jsx";
 import Error from "../componenets/Error.jsx";
 import ControlPanel from "../componenets/ControlPanel.jsx";
 
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+// Fix Leaflet marker icon paths
+L.Icon.Default.imagePath = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/";
+
+// Create custom marker icon
+const customIcon = new L.Icon({
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png",
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
 const ORS_API_KEY = import.meta.env.VITE_OPS_API_KEY;
 
 const MapComponent = () => {
-  const [start, setStart] = useState(null);
-  const [end, setEnd] = useState(null);
+  const dataTest = {
+    "coordinates": [
+      {lat:3.0618, lng:36.7821},  // Place des Martyrs
+      {lat:3.0591, lng:36.7764},  // Tafourah - Grande Poste
+      {lat:3.0544, lng:36.7648},  // Khelifa Boukhalfa
+      {lat:3.0652, lng:36.7324},  // Bir Mourad Raïs
+      {lat:3.0025, lng:36.7437},  // Ben Aknoun
+      {lat:3.0870, lng:36.7326},  // Kouba - Palais des Expositions
+      {lat:3.1806, lng:36.7130},  // Bab Ezzouar
+      {lat:2.8402, lng:36.7113},  // Zeralda
+      {lat:3.0423, lng:36.7978},  // Bab El Oued
+      {lat:3.2804, lng:36.7451}   // Reghaïa
+    ]
+  }
+  const fromTafourahHarrach = {
+    "coordinates": [
+      {lat:3.0591, lng:36.7764},  // Tafourah - Grande Poste
+      {lat:3.1136, lng:36.7132}  // El Harrach Bus Station
+    ],
+    "demand": 50
+  }
+  const fromTafourahBabEzzouar = {
+    "coordinates": [
+      {lat:3.0591, lng:36.7764},  // Tafourah - Grande Poste
+      {lat:3.1806, lng:36.7130},  // Bab Ezzouar
+    ],
+    "demand": 40
+  }
+
+  const [start, setStart] = useState(fromTafourahHarrach.coordinates[0]);
+  const [end, setEnd] = useState(fromTafourahHarrach.coordinates[1]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectingPoint, setSelectingPoint] = useState("start");
   const [routeCoordinates, setRouteCoordinates] = useState([]);
@@ -31,7 +63,37 @@ const MapComponent = () => {
   const [error, setError] = useState(null);
   const [routeStats, setRouteStats] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [demand, setDemand] = useState(fromTafourahHarrach.demand); // Initialize with a default value
   const markerRef = React.useRef(null);
+
+  // Initial route loading
+  useEffect(() => {
+    const initializeRoute = async () => {
+      if (start && end) {
+        if(fromTafourahHarrach.demand > fromTafourahBabEzzouar.demand)
+        {
+          await getRoute(fromTafourahHarrach.coordinates[0], fromTafourahHarrach.coordinates[1])
+        }
+        else
+        {
+          await getRoute(fromTafourahBabEzzouar.coordinates[0], fromTafourahBabEzzouar.coordinates[1])
+
+        }
+      }
+    };
+    initializeRoute();
+  }, []); // Only run once on component mount
+
+  // Handle demand changes separately
+  useEffect(() => {
+    const updateDemand = () => {
+      const newDemand = fromTafourahBabEzzouar.demand > fromTafourahHarrach.demand
+        ? fromTafourahBabEzzouar.demand
+        : fromTafourahHarrach.demand;
+      setDemand(newDemand);
+    };
+    updateDemand();
+  }, []);
 
   useEffect(() => {
     const marker = markerRef.current;
@@ -40,7 +102,6 @@ const MapComponent = () => {
       marker.on("mouseout", () => marker.closePopup());
     }
 
-    // Update time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
@@ -49,21 +110,22 @@ const MapComponent = () => {
   }, []);
 
   const getRoute = async (startPoint, endPoint) => {
+    if (!startPoint || !endPoint) return;
+    
     try {
       setLoading(true);
       setError(null);
 
       const headers = {
-        Accept:
-          "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+        Accept: "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
         Authorization: ORS_API_KEY,
         "Content-Type": "application/json",
       };
 
       const body = {
         coordinates: [
-          [startPoint.lng, startPoint.lat],
-          [endPoint.lng, endPoint.lat],
+          [startPoint.lat, startPoint.lng],
+          [endPoint.lat, endPoint.lng],
         ],
       };
 
@@ -145,27 +207,9 @@ const MapComponent = () => {
     setRouteStats(null);
   };
 
-  const customMarker = new L.Icon({
-    iconUrl: "./src/assets/gps.svg",
-    iconSize: [25, 30],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-  });
-
   return (
     <div className="relative h-screen w-full bg-[#FAFAFA]">
       <Header currentTime={currentTime} />
-
-      <MapContainerCustom
-        handleLocationSelect={handleLocationSelect}
-        isSelecting={isSelecting}
-        start={start}
-        end={end}
-        customMarker={customMarker}
-        markerRef={markerRef}
-        routeCoordinates={routeCoordinates}
-      />
-
       <RouteStats routeStats={routeStats} />
       <Error error={error} />
       <ControlPanel
@@ -178,7 +222,17 @@ const MapComponent = () => {
         startSelecting={startSelecting}
         resetPoints={resetPoints}
       />
-      {loading && <LoadingOverlay />}
+      {loading ? <LoadingOverlay /> : (
+        <MapContainerCustom
+          handleLocationSelect={handleLocationSelect}
+          isSelecting={isSelecting}
+          start={start}
+          end={end}
+          markerRef={markerRef}
+          routeCoordinates={routeCoordinates}
+          customIcon={customIcon}
+        />
+      )}
     </div>
   );
 };
